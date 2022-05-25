@@ -7,7 +7,7 @@ import datetime
 import timeit
 
 #supress debug messages for prod/tests
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 #start of our program
 api = ShoonyaApiPy()
@@ -38,15 +38,16 @@ if ret != None:
         print(scrips)
         print(80*'=')        
 
-    wltest = wlnames['values'][0]
-    ret = api.add_watch_list_scrip(wlname=wltest, instrument='NSE|22')
+    wltest = wlnames['values'][1]
+    ret = api.add_watch_list_scrip(wlname=wltest, instrument='NSE|25')
     wlscrips = api.get_watch_list(wlname=wltest)
+    print(wlscrips)
 
     for scrip in wlscrips['values']:
         print(f"{scrip['exch']} - {scrip['token']} {scrip['tsym']}")
     
     print(80*'=')
-    ret = api.delete_watch_list_scrip(wlname=wltest, instrument='NSE|22')
+    ret = api.delete_watch_list_scrip(wlname=wltest, instrument='NSE|1270')
     wlscrips = api.get_watch_list(wlname=wltest)
 
     for scrip in wlscrips['values']:
