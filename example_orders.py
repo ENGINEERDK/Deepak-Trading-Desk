@@ -1,11 +1,9 @@
 from api_helper import ShoonyaApiPy, get_time
-import datetime
 import logging
-import time
 import yaml
-import pandas as pd
+import json
  
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 #flag to tell us if the websocket is open
 socket_opened = False
@@ -35,7 +33,7 @@ def open_callback():
     socket_opened = True
     print('app is connected')
     #api.subscribe_orders()
-    api.subscribe('NSE|22')
+    api.subscribe(['NSE|26000','NSE|26009'])
     #api.subscribe(['NSE|22', 'BSE|522032'])
 
 #end of callbacks
@@ -80,7 +78,7 @@ if ret != None:
         if prompt1 == 'p':
             ret = api.place_order(buy_or_sell='B', product_type='C',
                         exchange='NSE', tradingsymbol='INFY-EQ', 
-                        quantity=1, discloseqty=0,price_type='LMT', price=1500.00, trigger_price=None,
+                        quantity=1, discloseqty=0,price_type='LMT', price=1400.00, trigger_price=None,
                         retention='DAY', remarks='my_order_001')
             print(ret)
 
@@ -98,34 +96,62 @@ if ret != None:
         elif prompt1 == 'y':
             orderno=input('Enter orderno:').lower()        
             ret = api.single_order_history(orderno=orderno)
+            data = json.dumps(ret)
+            print("---------------------------------")
             print(ret)
-            
+            print("***************************")
+            for order in ret:
+                print("----------------")
+                print (f"Order ID : {order['norenordno']}	Modified on : { order['norentm']}   Status: { order['status']}  | Trade Details-  Stock:{order['tsym']}   Buy/Sell:{order['trantype']}  Qty:{order['qty']}  OrderType:{order['prctyp']}  Price:{order['prc']}   Source:{order['ordersource']} ")
+                if(order['status']=='REJECTED'):
+                     print (f"rejreason: m{order['rejreason']}")
+
+
         elif prompt1 == 'o':            
             ret = api.get_order_book()
             print(ret)
+            print(f"Total Orders : {len(ret)}")
+            for order in ret:
+                 if(order['status']=='COMPLETE'):
+                    print(order)
+                    print("----------------")
 
         elif prompt1 == 'h':            
             ret = api.get_holdings()
-            print(ret)
+            #print(ret)
+            print(f"Total Holding : {len(ret)}")
+            for order in ret:
+                print(f"Stock: {order['exch_tsym'][0]['tsym']}   Qty: {order['holdqty']}   Price: {order['upldprc']}")
+                print("----------------")
 
         elif prompt1 == 'l':            
             ret = api.get_limits()
             print(ret)
+            print(f"Cash Available : {ret['cash']}")
 
         elif prompt1 == 'k':            
             ret = api.get_positions()
             print(ret)
-        elif prompt1 == 'd':            
-            #contributed by Aromal P Nair
-            while True:
-                ret = api.get_positions()
-                mtm = 0
-                pnl = 0
-                for i in ret:
-                    mtm += float(i['urmtom'])
-                    pnl += float(i['rpnl'])
-                    day_m2m = mtm + pnl
-                print(day_m2m)
+            print(f"Total positions : {len(ret)}")
+            for order in ret:
+                print(f"Name:{order['dname']}  BuyAvg:{order['daybuyavgprc']}  Sell_Avg:{order['daysellavgprc']}  QTY:{order['daybuyqty']}  PNLrpnl:{order['rpnl']}")
+                print("----------------")
+            mtm = 0
+            pnl = 0
+            for i in ret:
+                mtm += float(i['urmtom'])
+                pnl += float(i['rpnl'])
+                day_m2m = mtm + pnl
+            print(f'{day_m2m} is your Daily MTM')
+        elif prompt1 == 'd':
+            ret = api.get_positions()
+            mtm = 0
+            pnl = 0
+            for i in ret:
+                mtm += float(i['urmtom'])
+                pnl += float(i['rpnl'])
+                day_m2m = mtm + pnl
+            print(day_m2m)
         elif prompt1 == 's':
             if socket_opened == True:
                 print('websocket already opened')
